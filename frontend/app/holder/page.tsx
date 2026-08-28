@@ -1,7 +1,13 @@
 "use client";
 
+import type { Metadata } from "next";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "StellarCred — Your credentials",
+  description: "Manage verified zero-knowledge credentials held in your wallet and prove them on-chain.",
+};
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -277,7 +283,7 @@ function HolderInner() {
   const [importing, setImporting] = useState(false);
   const [detailCred, setDetailCred] = useState<Credential | null>(null);
 
-  useEffect(() => setCreds(loadCredentials()), []);
+  useEffect(() => { loadCredentials().then(setCreds); }, []);
 
   // A transfer QR opened directly (native camera app -> /holder?import=...)
   // lands here with the payload already in the URL — prompt for the
@@ -412,14 +418,14 @@ function HolderInner() {
           cred={view.cred}
           holder={address}
           onBack={() => setView({ kind: "list" })}
-          onProved={(txHash) => setCreds(markProved(view.cred.commitment, txHash))}
+          onProved={(txHash) => markProved(view.cred.commitment, txHash).then(setCreds)}
         />
       ) : view.kind === "batch" ? (
         <BatchProofFlow
           creds={view.creds}
           holder={address}
           onBack={() => setView({ kind: "list" })}
-          onProved={(txHash, commitments) => setCreds(markAllProved(commitments, txHash))}
+          onProved={(txHash, commitments) => markAllProved(commitments, txHash).then(setCreds)}
         />
       ) : (
         <div className="stack reveal" style={{ gap: "1.5rem" }}>
@@ -453,20 +459,20 @@ function HolderInner() {
                   c={c}
                   address={address}
                   onProve={() => setView({ kind: "single", cred: c })}
-                  onRemove={() => setCreds(removeCredential(c.commitment))}
-                  onInspect={() => setDetailCred(c)}
-                  isPreview={isPreview}
-                  selection={
-                    canBatch
-                      ? {
-                          checked: selectedCommitments.includes(c.commitment),
-                          blockedReason: blockedReason(c),
-                          onToggle: () => toggleSelected(c),
-                        }
-                      : undefined
-                  }
-                />
-              ))}
+                   onRemove={() => removeCredential(c.commitment).then(setCreds)}
+                   onInspect={() => setDetailCred(c)}
+                   isPreview={isPreview}
+                   selection={
+                     canBatch
+                       ? {
+                           checked: selectedCommitments.includes(c.commitment),
+                           blockedReason: blockedReason(c),
+                           onToggle: () => toggleSelected(c),
+                         }
+                       : undefined
+                   }
+                 />
+               ))}
 
               {/* Batch bar — select up to MAX_BATCH_SIZE credentials of
                   distinct types and prove them in one transaction. */}
@@ -535,7 +541,7 @@ function HolderInner() {
                   c={c}
                   address={address}
                   onProve={() => setView({ kind: "single", cred: c })}
-                  onRemove={() => setCreds(removeCredential(c.commitment))}
+                  onRemove={() => removeCredential(c.commitment).then(setCreds)}
                   onInspect={() => setDetailCred(c)}
                   isPreview={isPreview}
                 />
@@ -551,7 +557,10 @@ function HolderInner() {
 
           {importing ? (
             <ImportPanel
-              onImport={(c) => { setCreds(saveCredential(c)); setImporting(false); }}
+              onImport={async (c) => {
+                setCreds(await saveCredential(c));
+                setImporting(false);
+              }}
               onCancel={() => setImporting(false)}
             />
           ) : (

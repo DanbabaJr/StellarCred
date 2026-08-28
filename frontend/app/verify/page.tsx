@@ -1,7 +1,13 @@
 "use client";
 
+import type { Metadata } from "next";
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "StellarCred — Verify a claim",
+  description: "Issue a zero-knowledge credential from a trusted issuer and prove your eligibility on Stellar.",
+};
 import {
   IconArrowRight,
   IconLoader2,
@@ -290,8 +296,8 @@ function VerifyInner() {
           credentials: import("@/lib/credential").Credential[];
         }>;
       })
-      .then(({ credentials }) => {
-        credentials.forEach((c) => saveCredential(c));
+      .then(async ({ credentials }) => {
+        await Promise.all(credentials.map((c) => saveCredential(c)));
         justIssuedClaims.current = credentials.map((c) => c.type).filter((t) => VALID_CLAIMS.includes(t as CredentialType));
 
         setDone(true);
@@ -415,7 +421,7 @@ function VerifyInner() {
       const { credentials } = (await res.json()) as {
         credentials: Credential[];
       };
-      credentials.forEach((c) => saveCredential(c));
+      await Promise.all(credentials.map((c) => saveCredential(c)));
       justIssuedClaims.current = credentials.map((c) => c.type).filter((t) => VALID_CLAIMS.includes(t as CredentialType));
       setDone(true);
       toast.success(

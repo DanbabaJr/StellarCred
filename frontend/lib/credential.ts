@@ -93,58 +93,144 @@ export function randomField(): string {
   );
 }
 
-// ---- Local wallet (this browser) ----------------------------------------
+// ---- At-rest encryption (AES-256-GCM) ---------------------------------------
 
-const KEY = "stellarcred:credentials";
+const STORE_KEY = "stellarcred:credentials";
+const ENC_KEY_STORE = "stellarcred:cred-enc-key";
 
-export function loadCredentials(): Credential[] {
+function toBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function fromBase64(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function getEncryptionKey(): Promise<CryptoKey> {
+  try {
+    const stored = sessionStorage.getItem(ENC_KEY_STORE);
+    if (stored) {
+      const raw = fromBase64(stored);
+      return crypto.subtle.importKey(
+        "raw",
+        raw,
+        { name: "AES-GCM" },
+        false,
+        ["encrypt", "decrypt"],
+      );
+    }
+  } catch {
+    sessionStorage.removeItem(ENC_KEY_STORE);
+    localStorage.removeItem(STORE_KEY);
+  }
+
+  const key = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+
+  const raw = new Uint8Array(await crypto.subtle.exportKey("raw", key));
+  sessionStorage.setItem(ENC_KEY_STORE, toBase64(raw));
+
+  return key;
+}
+
+async function encryptBlob(plaintext: string): Promise<string> {
+  const key = await getEncryptionKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(plaintext);
+  const ciphertext = new Uint8Array(
+    await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded),
+  );
+
+  const combined = new Uint8Array(iv.length + ciphertext.length);
+  combined.set(iv);
+  combined.set(ciphertext, iv.length);
+
+  return toBase64(combined);
+}
+
+async function decryptBlob(ciphertextB64: string): Promise<string> {
+  const key = await getEncryptionKey();
+  const combined = fromBase64(ciphertextB64);
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext,
+  );
+
+  return new TextDecoder().decode(decrypted);
+}
+
+// ---- Local wallet (this browser) --------------------------------------------
+
+export async function loadCredentials(): Promise<Credential[]> {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "[]");
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return [];
+    const decrypted = await decryptBlob(raw);
+    return JSON.parse(decrypted);
   } catch {
     return [];
   }
 }
 
-export function saveCredential(cred: Credential): Credential[] {
-  const all = loadCredentials();
+export async function saveCredential(cred: Credential): Promise<Credential[]> {
+  const all = await loadCredentials();
   const next = [
     cred,
     ...all.filter(
       (c) => !(c.type === cred.type && c.commitment === cred.commitment),
     ),
   ];
-  localStorage.setItem(KEY, JSON.stringify(next));
+  localStorage.setItem(STORE_KEY, await encryptBlob(JSON.stringify(next)));
   return next;
 }
 
-export function markProved(commitment: string, txHash: string): Credential[] {
-  const next = loadCredentials().map((c) =>
+export async function markProved(commitment: string, txHash: string): Promise<Credential[]> {
+  const all = await loadCredentials();
+  const next = all.map((c) =>
     c.commitment === commitment
       ? { ...c, provedAt: Math.floor(Date.now() / 1000), provedTxHash: txHash }
       : c,
   );
-  localStorage.setItem(KEY, JSON.stringify(next));
+  localStorage.setItem(STORE_KEY, await encryptBlob(JSON.stringify(next)));
   return next;
 }
 
 /** Mark multiple credentials as proved in a single localStorage write. */
-export function markAllProved(
+export async function markAllProved(
   commitments: string[],
   txHash: string,
-): Credential[] {
+): Promise<Credential[]> {
   const set = new Set(commitments);
   const now = Math.floor(Date.now() / 1000);
-  const next = loadCredentials().map((c) =>
+  const all = await loadCredentials();
+  const next = all.map((c) =>
     set.has(c.commitment) ? { ...c, provedAt: now, provedTxHash: txHash } : c,
   );
-  localStorage.setItem(KEY, JSON.stringify(next));
+  localStorage.setItem(STORE_KEY, await encryptBlob(JSON.stringify(next)));
   return next;
 }
 
-export function removeCredential(commitment: string): Credential[] {
-  const next = loadCredentials().filter((c) => c.commitment !== commitment);
-  localStorage.setItem(KEY, JSON.stringify(next));
+export async function removeCredential(commitment: string): Promise<Credential[]> {
+  const all = await loadCredentials();
+  const next = all.filter((c) => c.commitment !== commitment);
+  localStorage.setItem(STORE_KEY, await encryptBlob(JSON.stringify(next)));
   return next;
 }
 
