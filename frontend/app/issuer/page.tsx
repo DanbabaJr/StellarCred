@@ -1,5 +1,6 @@
 "use client";
 
+import type { Metadata } from "next";
 import { useEffect, useMemo, useState } from "react";
 import {
   IconKey,
@@ -17,6 +18,11 @@ import { ConfigBanner } from "@/components/ConfigBanner";
 import { issuanceConfigured } from "@/lib/config";
 import { truncateAddress, truncatePubkey } from "@/lib/format";
 import type { RegisteredIssuer } from "@/lib/issuer-registry";
+
+export const metadata: Metadata = {
+  title: "StellarCred — Issue credentials",
+  description: "Demo issuer flow for issuing attested zero-knowledge credentials to a wallet on Stellar.",
+};
 
 const TYPES = Object.entries(TYPE_META) as [
   CredentialType,
@@ -152,7 +158,7 @@ export default function IssuerPage() {
       if (!res.ok) throw new Error(await readApiError(res));
       const { credentials } = (await res.json()) as { credentials: Credential[] };
       const cred = credentials[0];
-      saveCredential(cred);
+      await saveCredential(cred);
       setIssued(JSON.stringify(cred, null, 2));
     } catch (e) {
       setError((e as Error).message);

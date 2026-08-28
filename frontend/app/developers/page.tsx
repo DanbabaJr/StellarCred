@@ -3,7 +3,7 @@ import { CONTRACTS } from "@/lib/stellar";
 import CopyButton from "@/components/CopyButton";
 
 export const metadata: Metadata = {
-  title: "Developers · StellarCred",
+  title: "StellarCred — Developers",
   description: "Integrate StellarCred in minutes — one contract call, no backend.",
 };
 
