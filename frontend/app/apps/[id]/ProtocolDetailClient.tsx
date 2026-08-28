@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useSearchParams, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   IconLock,
   IconCheck,
@@ -191,6 +192,7 @@ function ProtocolDetailBody({
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
+                aria-label="Scan to verify on another device"
                 title="Scan to verify on another device"
                 onClick={() => setShowQr(true)}
               >
