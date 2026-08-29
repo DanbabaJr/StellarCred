@@ -14,11 +14,9 @@ import {
   IconTrash,
   IconCertificate,
   IconLoader2,
-  IconServer,
   IconCpu,
   IconCloudUpload,
   IconStack2,
-  IconInfoCircle,
   IconDownload,
 } from "@tabler/icons-react";
 import { WalletButton } from "@/components/WalletButton";
@@ -57,7 +55,6 @@ import CopyButton from "@/components/CopyButton";
 import dynamic from "next/dynamic";
 import CredentialDetailModal from "@/components/CredentialDetailModal";
 import { useToast } from "@/components/Toast";
-import { QrScanner } from "@/components/QrScanner";
 import { IMPORT_PARAM } from "@/lib/transfer";
 
 // The encrypted-transfer modals are heavy (crypto.ts PBKDF2/AES-GCM, QR
@@ -145,9 +142,9 @@ function CredCard({
   address,
   onProve,
   onRemove,
-  onInspect,
+  onInspect: _onInspect,
   isPreview,
-  selection,
+  selection: _selection,
 }: {
   c: Credential;
   address: string;
@@ -511,7 +508,7 @@ function HolderInner() {
                 className="faint"
                 style={{ fontSize: "0.75rem", maxWidth: 380, margin: "1.25rem auto 0", lineHeight: 1.6 }}
               >
-                Credentials are stored only in this browser's local storage — clearing
+                Credentials are stored only in this browser&apos;s local storage — clearing
                 site data, switching browsers/devices, or private mode erases them.{" "}
                 <Link
                   href="/docs#storage"
