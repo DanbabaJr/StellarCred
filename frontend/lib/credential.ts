@@ -137,7 +137,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
       const raw = fromBase64(stored);
       return crypto.subtle.importKey(
         "raw",
-        raw,
+        raw as BufferSource,
         { name: "AES-GCM", length: 256 },
         false,
         ["encrypt", "decrypt"],
