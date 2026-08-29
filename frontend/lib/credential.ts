@@ -150,7 +150,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
 
   const key = await crypto.subtle.generateKey(
     { name: "AES-GCM", length: 256 },
-    false,
+    true,
     ["encrypt", "decrypt"],
   );
 
@@ -194,9 +194,23 @@ async function decryptBlob(ciphertextB64: string): Promise<string> {
 
 export async function loadCredentials(): Promise<Credential[]> {
   if (typeof window === "undefined") return [];
+  const raw = localStorage.getItem(STORE_KEY);
+  if (!raw) return [];
+
+  // Legacy plaintext fallback: if the stored value is valid JSON array,
+  // return it directly. Migration to encrypted storage happens on the next
+  // save (saveCredential / markProved / etc.) so we don't race with tests
+  // or other tabs that are also reading.
   try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch {
+    // Not plaintext JSON, fall through to decryption.
+  }
+
+  try {
     const decrypted = await decryptBlob(raw);
     return JSON.parse(decrypted);
   } catch {
@@ -287,7 +301,6 @@ export function parseCredential(json: string): Credential {
 export function useCredentialSync(): Credential[] {
   const [credentials, setCredentials] = useState<Credential[]>([]);
 
-  // Reload credentials from localStorage (async: values are encrypted at rest)
   const reload = useCallback(() => {
     loadCredentials().then(setCredentials);
   }, []);
