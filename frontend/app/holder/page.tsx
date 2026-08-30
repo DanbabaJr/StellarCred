@@ -283,7 +283,7 @@ function HolderInner() {
   const [importing, setImporting] = useState(false);
   const [detailCred, setDetailCred] = useState<Credential | null>(null);
 
-  useEffect(() => { loadCredentials().then(setCreds); }, []);
+  useEffect(() => { setCreds(loadCredentials()); }, []);
 
   // A transfer QR opened directly (native camera app -> /holder?import=...)
   // lands here with the payload already in the URL — prompt for the
@@ -418,14 +418,14 @@ function HolderInner() {
           cred={view.cred}
           holder={address}
           onBack={() => setView({ kind: "list" })}
-          onProved={(txHash) => markProved(view.cred.commitment, txHash).then(setCreds)}
+          onProved={(txHash) => setCreds(markProved(view.cred.commitment, txHash))}
         />
       ) : view.kind === "batch" ? (
         <BatchProofFlow
           creds={view.creds}
           holder={address}
           onBack={() => setView({ kind: "list" })}
-          onProved={(txHash, commitments) => markAllProved(commitments, txHash).then(setCreds)}
+          onProved={(txHash, commitments) => setCreds(markAllProved(commitments, txHash))}
         />
       ) : (
         <div className="stack reveal" style={{ gap: "1.5rem" }}>
@@ -459,7 +459,7 @@ function HolderInner() {
                   c={c}
                   address={address}
                   onProve={() => setView({ kind: "single", cred: c })}
-                   onRemove={() => removeCredential(c.commitment).then(setCreds)}
+                   onRemove={() => setCreds(removeCredential(c.commitment))}
                    onInspect={() => setDetailCred(c)}
                    isPreview={isPreview}
                    selection={
@@ -541,7 +541,7 @@ function HolderInner() {
                   c={c}
                   address={address}
                   onProve={() => setView({ kind: "single", cred: c })}
-                  onRemove={() => removeCredential(c.commitment).then(setCreds)}
+                  onRemove={() => setCreds(removeCredential(c.commitment))}
                   onInspect={() => setDetailCred(c)}
                   isPreview={isPreview}
                 />
