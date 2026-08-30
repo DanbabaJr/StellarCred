@@ -71,7 +71,7 @@ export async function createEncryptedBackup(
   if (!passphrase) {
     throw new Error("Passphrase must not be empty");
   }
-  const credentials = await loadCredentials();
+  const credentials = loadCredentials();
   const plaintext = new TextEncoder().encode(JSON.stringify(credentials));
 
   const saltBytes = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
@@ -150,10 +150,10 @@ export async function decryptBackup(
 }
 
 export async function mergeCredentials(imported: Credential[]): Promise<Credential[]> {
-  let current = await loadCredentials();
+  let current = loadCredentials();
 
   for (const cred of imported) {
-    current = await saveCredential(cred);
+    current = saveCredential(cred);
   }
 
   return current;
