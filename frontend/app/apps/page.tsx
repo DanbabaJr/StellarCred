@@ -1,15 +1,9 @@
 "use client";
 
-import type { Metadata } from "next";
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "StellarCred — Protocols",
-  description:
-    "Browse live demo protocols that gate access with zero-knowledge credentials on Stellar.",
-};
 import {
   IconCheck,
   IconCircle,

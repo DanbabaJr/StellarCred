@@ -1,13 +1,7 @@
 "use client";
 
-import type { Metadata } from "next";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-export const metadata: Metadata = {
-  title: "StellarCred — Your credentials",
-  description: "Manage verified zero-knowledge credentials held in your wallet and prove them on-chain.",
-};
 import {
   IconArrowLeft,
   IconArrowRight,

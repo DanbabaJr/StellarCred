@@ -1,13 +1,8 @@
 "use client";
 
-import type { Metadata } from "next";
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "StellarCred — Verify a claim",
-  description: "Issue a zero-knowledge credential from a trusted issuer and prove your eligibility on Stellar.",
-};
 import {
   IconArrowRight,
   IconLoader2,

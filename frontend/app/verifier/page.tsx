@@ -1,13 +1,8 @@
 "use client";
 
-import type { Metadata } from "next";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "StellarCred — Verifier demo",
-  description: "See how protocols check zero-knowledge credential proofs on-chain without seeing the underlying data.",
-};
 import { useSearchParams } from "next/navigation";
 import { IconLock, IconCheck, IconCircle, IconArrowRight } from "@tabler/icons-react";
 import { WalletButton } from "@/components/WalletButton";

@@ -1,6 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
 import { useEffect, useMemo, useState } from "react";
 import {
   IconKey,
@@ -18,11 +17,6 @@ import { ConfigBanner } from "@/components/ConfigBanner";
 import { issuanceConfigured } from "@/lib/config";
 import { truncateAddress, truncatePubkey } from "@/lib/format";
 import type { RegisteredIssuer } from "@/lib/issuer-registry";
-
-export const metadata: Metadata = {
-  title: "StellarCred — Issue credentials",
-  description: "Demo issuer flow for issuing attested zero-knowledge credentials to a wallet on Stellar.",
-};
 
 const TYPES = Object.entries(TYPE_META) as [
   CredentialType,

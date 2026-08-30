@@ -1,13 +1,8 @@
 "use client";
 
-import type { Metadata } from "next";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "StellarCred — Docs",
-  description: "Learn the architecture, privacy model, and protocol flow behind zero-knowledge credentials on Stellar.",
-};
 import {
   IconArrowRight,
   IconShieldCheck,

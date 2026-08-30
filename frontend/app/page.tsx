@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import {
   IconArrowRight,
@@ -11,25 +10,6 @@ import {
   IconRouteSquare,
 } from "@tabler/icons-react";
 import { CredentialCard } from "@/components/CredentialCard";
-
-export const metadata: Metadata = {
-  title: "StellarCred — Prove anything. Reveal nothing.",
-  description:
-    "Zero-knowledge credentials on Stellar. Prove facts about yourself without the underlying data ever touching the chain.",
-  openGraph: {
-    title: "StellarCred — Prove anything. Reveal nothing.",
-    description:
-      "Zero-knowledge credentials on Stellar. Prove facts about yourself without the underlying data ever touching the chain.",
-    siteName: "StellarCred",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: "StellarCred — Prove anything. Reveal nothing.",
-    description:
-      "Zero-knowledge credentials on Stellar. Prove facts about yourself without the underlying data ever touching the chain.",
-  },
-};
 
 const ECOSYSTEM = ["LendFi", "StellarSwap", "PayrollX", "RWA Market", "TreasuryHub"];
 
