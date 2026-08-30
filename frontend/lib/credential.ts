@@ -115,6 +115,10 @@ function fromBase64(b64: string): Uint8Array {
   return bytes;
 }
 
+function toBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
 async function getEncryptionKey(): Promise<CryptoKey> {
   try {
     const stored = sessionStorage.getItem(ENC_KEY_STORE);
@@ -122,7 +126,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
       const raw = fromBase64(stored);
       return crypto.subtle.importKey(
         "raw",
-        raw,
+        toBuffer(raw),
         { name: "AES-GCM" },
         false,
         ["encrypt", "decrypt"],
@@ -167,9 +171,9 @@ async function decryptBlob(ciphertextB64: string): Promise<string> {
   const ciphertext = combined.slice(12);
 
   const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
+    { name: "AES-GCM", iv: toBuffer(iv) },
     key,
-    ciphertext,
+    toBuffer(ciphertext),
   );
 
   return new TextDecoder().decode(decrypted);
