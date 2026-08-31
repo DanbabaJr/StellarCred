@@ -115,6 +115,14 @@ function fromBase64(b64: string): Uint8Array {
   return bytes;
 }
 
+// TS 5.9+ types Uint8Array.slice() as Uint8Array<ArrayBufferLike> which
+// is not assignable to WebCrypto's BufferSource (needs <ArrayBuffer>).
+// fromBase64 always uses `new Uint8Array(n)` (never SharedArrayBuffer), so
+// the cast is safe.
+function toAB(u8: Uint8Array): Uint8Array<ArrayBuffer> {
+  return u8 as unknown as Uint8Array<ArrayBuffer>;
+}
+
 async function getEncryptionKey(): Promise<CryptoKey> {
   try {
     const stored = sessionStorage.getItem(ENC_KEY_STORE);
@@ -122,7 +130,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
       const raw = fromBase64(stored);
       return crypto.subtle.importKey(
         "raw",
-        raw,
+        toAB(raw),
         { name: "AES-GCM" },
         false,
         ["encrypt", "decrypt"],
@@ -135,7 +143,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
 
   const key = await crypto.subtle.generateKey(
     { name: "AES-GCM", length: 256 },
-    false,
+    true,
     ["encrypt", "decrypt"],
   );
 
@@ -167,9 +175,9 @@ async function decryptBlob(ciphertextB64: string): Promise<string> {
   const ciphertext = combined.slice(12);
 
   const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
+    { name: "AES-GCM", iv: toAB(iv) },
     key,
-    ciphertext,
+    toAB(ciphertext),
   );
 
   return new TextDecoder().decode(decrypted);

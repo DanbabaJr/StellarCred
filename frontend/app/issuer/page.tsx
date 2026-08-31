@@ -7,6 +7,8 @@ import {
   IconArrowRight,
   IconLoader2,
   IconShieldCheck,
+  IconLayoutGrid,
+  IconX,
 } from "@tabler/icons-react";
 import { WalletButton } from "@/components/WalletButton";
 import { useWallet } from "@/lib/wallet-context";
@@ -18,6 +20,11 @@ import { ConfigBanner } from "@/components/ConfigBanner";
 import { issuanceConfigured } from "@/lib/config";
 import { truncateAddress, truncatePubkey } from "@/lib/format";
 import type { RegisteredIssuer } from "@/lib/issuer-registry";
+import {
+  ISSUER_TEMPLATES,
+  TEMPLATE_CATEGORIES,
+  type IssuerTemplate,
+} from "@/lib/issuer-templates";
 
 export const metadata: Metadata = {
   title: "StellarCred — Issue credentials",
@@ -71,6 +78,8 @@ export default function IssuerPage() {
   const [issued, setIssued] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState<IssuerTemplate | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
 
   const selectedIssuer = useMemo(
     () => issuers.find((issuer) => issuer.id === selectedIssuerId) ?? null,
@@ -129,6 +138,21 @@ export default function IssuerPage() {
     setAttribute(DEFAULT_ATTR[nextType]);
   }
 
+  function onTemplateSelect(template: IssuerTemplate) {
+    setSelectedTemplate(template);
+    setType(template.type);
+    setAttribute(template.attribute);
+    setExpiry(template.expiry);
+    setShowGallery(false);
+  }
+
+  function onClearTemplate() {
+    setSelectedTemplate(null);
+    setType("kyc");
+    setAttribute(DEFAULT_ATTR.kyc);
+    setExpiry("90 days");
+  }
+
   async function onIssue() {
     if (!selectedIssuer) return;
     setBusy(true);
@@ -182,6 +206,133 @@ export default function IssuerPage() {
       {/* Same shared check as /api/ready — issuance can't work without the
           demo issuer address and IssuerRegistry, so say so up front. */}
       <ConfigBanner requireIssuance />
+
+      {/* Template Gallery */}
+      <div
+        className="card"
+        style={{ marginBottom: "1.5rem" }}
+      >
+        <div className="between" style={{ marginBottom: "1rem" }}>
+          <div className="row" style={{ gap: "0.6rem" }}>
+            <IconLayoutGrid size={18} style={{ color: "var(--accent)" }} />
+            <span className="eyebrow">Quick start templates</span>
+          </div>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => setShowGallery(!showGallery)}
+          >
+            {showGallery ? "Hide gallery" : "Browse templates"}
+          </button>
+        </div>
+
+        {!showGallery && !selectedTemplate && (
+          <p className="faint" style={{ fontSize: "0.8125rem", lineHeight: 1.6 }}>
+            Pick a pre-configured template to speed up credential setup, or
+            configure from scratch below.
+          </p>
+        )}
+
+        {!showGallery && selectedTemplate && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              padding: "0.75rem 1rem",
+              borderRadius: "var(--radius-sm)",
+              background: "var(--accent-soft)",
+              border: "1px solid rgba(62, 207, 142, 0.2)",
+            }}
+          >
+            <span style={{ fontSize: "1.5rem" }}>{selectedTemplate.icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                {selectedTemplate.name}
+              </div>
+              <div className="faint" style={{ fontSize: "0.8125rem" }}>
+                {selectedTemplate.claim} · {selectedTemplate.expiry}
+              </div>
+            </div>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={onClearTemplate}
+              title="Clear template"
+            >
+              <IconX size={14} />
+            </button>
+          </div>
+        )}
+
+        {showGallery && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            {TEMPLATE_CATEGORIES.map((cat) => {
+              const templates = ISSUER_TEMPLATES.filter((t) => t.category === cat.id);
+              if (templates.length === 0) return null;
+              return (
+                <div key={cat.id}>
+                  <div
+                    className="row"
+                    style={{
+                      gap: "0.4rem",
+                      marginBottom: "0.6rem",
+                      fontSize: "0.8125rem",
+                      color: "var(--muted)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </div>
+                  <div
+                    className="grid grid-3"
+                    style={{ gap: "0.6rem" }}
+                  >
+                    {templates.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => onTemplateSelect(template)}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.4rem",
+                          padding: "0.75rem",
+                          borderRadius: "var(--radius-sm)",
+                          border: "1px solid var(--border)",
+                          background: "var(--bg-soft)",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.15s var(--ease)",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = "rgba(62, 207, 142, 0.4)";
+                          e.currentTarget.style.background = "var(--card-hover)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = "var(--border)";
+                          e.currentTarget.style.background = "var(--bg-soft)";
+                        }}
+                      >
+                        <div className="row" style={{ gap: "0.5rem" }}>
+                          <span style={{ fontSize: "1.25rem" }}>{template.icon}</span>
+                          <span style={{ fontWeight: 600, fontSize: "0.8125rem" }}>
+                            {template.name}
+                          </span>
+                        </div>
+                        <span
+                          className="faint"
+                          style={{ fontSize: "0.75rem", lineHeight: 1.4 }}
+                        >
+                          {template.description}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <div
         style={{
@@ -265,7 +416,10 @@ export default function IssuerPage() {
               <select
                 id="credential-type"
                 value={type}
-                onChange={(e) => onType(e.target.value as CredentialType)}
+                onChange={(e) => {
+                  onType(e.target.value as CredentialType);
+                  setSelectedTemplate(null);
+                }}
                 disabled={availableTypes.length === 0}
               >
                 {availableTypes.map(([key, m]) => (
