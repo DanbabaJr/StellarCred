@@ -1,6 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -13,11 +12,6 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { Badge } from "@/components/Badge";
-
-export const metadata: Metadata = {
-  title: "StellarCred — Submit App",
-  description: "Submit your StellarCred integration for listing in the Apps gallery.",
-};
 
 const VALID_CLAIM_TYPES = [
   "kyc",
