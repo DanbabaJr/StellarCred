@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -11,6 +11,7 @@ import {
   IconLoader2,
   IconAlertCircle,
   IconRefresh,
+  IconPlus,
 } from "@tabler/icons-react";
 import { WalletButton } from "@/components/WalletButton";
 import { useWallet, usePreviewMode } from "@/lib/wallet-context";
@@ -244,6 +245,38 @@ function AppsInner() {
 
   const [search, setSearch] = useState("");
   const [selectedClaims, setSelectedClaims] = useState<Set<string>>(new Set());
+  const [communityApps, setCommunityApps] = useState<Protocol[]>([]);
+
+  useEffect(() => {
+    fetch("/api/apps")
+      .then((r) => r.json())
+      .then((data: { apps?: Array<{ id: number; app_name: string; description: string; required_claims: string; verify_url: string }> }) => {
+        if (!data.apps || data.apps.length === 0) return;
+        const converted: Protocol[] = data.apps.map((app) => {
+          const claims: string[] = JSON.parse(app.required_claims || "[]");
+          return {
+            id: `community-${app.id}`,
+            name: app.app_name,
+            tagline: "Community integration",
+            description: app.description,
+            stat: { label: "Credential types", value: String(claims.length), sub: claims.join(", ") },
+            requirements: claims.map((c: string) => ({ label: CLAIM_LABELS[c] || c, type: c })),
+            verifyUrl: `/verify?return_url=/apps/community-${app.id}&claim=${claims[0] || "kyc"}`,
+            actionLabel: "Get started",
+            inputLabel: "Action",
+            inputDefault: "",
+            icon: <IconCircle size={18} stroke={1.6} />,
+          };
+        });
+        setCommunityApps(converted);
+      })
+      .catch(() => { /* ignore */ });
+  }, []);
+
+  const allProtocols = useMemo(
+    () => [...communityApps, ...PROTOCOLS],
+    [communityApps]
+  );
 
   const toggleClaim = (claim: string) => {
     setSelectedClaims((prev) => {
@@ -255,7 +288,7 @@ function AppsInner() {
   };
 
   const filtered = useMemo(() => {
-    return PROTOCOLS.filter((p) => {
+    return allProtocols.filter((p) => {
       const matchesSearch =
         !search.trim() ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -266,16 +299,26 @@ function AppsInner() {
         p.requirements.some((r) => selectedClaims.has(r.type));
       return matchesSearch && matchesClaims;
     });
-  }, [search, selectedClaims]);
+  }, [search, selectedClaims, allProtocols]);
 
   return (
     <>
       <div className="between" style={{ marginBottom: "2rem" }}>
         <div>
-          <span className="eyebrow">Demo protocols</span>
+          <span className="eyebrow">Protocols</span>
           <h1 style={{ fontSize: "2rem", marginTop: "0.35rem" }}>Apps</h1>
         </div>
-        <WalletButton />
+        <div className="row" style={{ gap: "0.75rem", alignItems: "center" }}>
+          <Link
+            href="/apps/submit"
+            className="btn btn-secondary btn-sm"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+          >
+            <IconPlus size={14} />
+            Submit app
+          </Link>
+          <WalletButton />
+        </div>
       </div>
 
       <div
