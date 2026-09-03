@@ -70,6 +70,8 @@ export interface Db {
    */
   getMaxClaimLedger(): number | Promise<number>;
 
+  /** Upsert a verified claim event. */
+  upsertClaim(row: ClaimRow): void | Promise<void>;
   /** Upsert a verified claim event (the `id` cursor is assigned by the db). */
   upsertClaim(row: ClaimInput): void | Promise<void>;
 
