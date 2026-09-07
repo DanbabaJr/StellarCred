@@ -318,7 +318,6 @@ function AppsInner() {
             Submit app
           </Link>
           <WalletButton />
-        </div>
       </div>
 
       <div
