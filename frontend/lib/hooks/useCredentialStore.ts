@@ -27,12 +27,6 @@ const STORAGE_KEY = "stellarcred:credentials";
 export function useCredentialStore() {
   const [creds, setCreds] = useState<Credential[]>([]);
 
-  // loadCredentials is async (localStorage -> PBKDF2 key derivation),
-  // so hydrate after mount.
-  useEffect(() => {
-    loadCredentials().then(setCreds);
-  }, []);
-
   // ── Initial load ──────────────────────────────────────────────────────────
   // The credential store is async, so hydrate on mount.
   useEffect(() => {

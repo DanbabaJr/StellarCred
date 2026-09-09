@@ -352,7 +352,6 @@ function GenerateProofStep() {
   const [hasCredential, setHasCredential] = useState(false);
 
   useEffect(() => {
-    loadCredentials().then((creds) => setHasCredential(creds.some((c) => c.type === "age")));
     loadCredentials().then((creds) =>
       setHasCredential(creds.some((c) => c.type === "age")),
     );
@@ -469,14 +468,9 @@ export function OnboardingWizard() {
   } = useOnboarding();
   const { address } = useWallet();
   const [mounted2, setMounted2] = useState(false);
-  const [hasAgeCredential, setHasAgeCredential] = useState(false);
 
   useEffect(() => setMounted2(true), []);
 
-  // Track whether the user already holds an age credential (loadCredentials
-  // is async, so this can't be computed synchronously during render).
-  useEffect(() => {
-    loadCredentials().then((creds) => setHasAgeCredential(creds.some((c) => c.type === "age")));
   const [hasAgeCredential, setHasAgeCredential] = useState(false);
 
   useEffect(() => {
