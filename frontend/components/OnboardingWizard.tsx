@@ -353,6 +353,9 @@ function GenerateProofStep() {
 
   useEffect(() => {
     loadCredentials().then((creds) => setHasCredential(creds.some((c) => c.type === "age")));
+    loadCredentials().then((creds) =>
+      setHasCredential(creds.some((c) => c.type === "age")),
+    );
   }, []);
 
   return (
@@ -474,6 +477,12 @@ export function OnboardingWizard() {
   // is async, so this can't be computed synchronously during render).
   useEffect(() => {
     loadCredentials().then((creds) => setHasAgeCredential(creds.some((c) => c.type === "age")));
+  const [hasAgeCredential, setHasAgeCredential] = useState(false);
+
+  useEffect(() => {
+    loadCredentials().then((creds) =>
+      setHasAgeCredential(creds.some((c) => c.type === "age")),
+    );
   }, []);
 
   // Auto-dismiss after completing the unlock step

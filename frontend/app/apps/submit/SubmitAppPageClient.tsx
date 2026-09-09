@@ -39,7 +39,7 @@ type SubmitState =
   | { kind: "success"; id: number }
   | { kind: "error"; message: string };
 
-export default function SubmitAppPage() {
+export default function SubmitAppPageClient() {
   const [appName, setAppName] = useState("");
   const [description, setDescription] = useState("");
   const [requiredClaims, setRequiredClaims] = useState<string[]>([]);
@@ -350,15 +350,4 @@ export default function SubmitAppPage() {
       </form>
     </div>
   );
-import type { Metadata } from "next";
-import SubmitAppPageClient from "./SubmitAppPageClient";
-
-export const metadata: Metadata = {
-  title: "StellarCred — Submit an App",
-  description:
-    "Submit your StellarCred integration for review and listing in the Apps gallery.",
-};
-
-export default function Page() {
-  return <SubmitAppPageClient />;
 }

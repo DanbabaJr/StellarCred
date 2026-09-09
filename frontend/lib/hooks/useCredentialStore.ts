@@ -33,7 +33,13 @@ export function useCredentialStore() {
     loadCredentials().then(setCreds);
   }, []);
 
-  // ── Cross-tab sync ─────────────────────────────────────────────────────────
+  // ── Initial load ──────────────────────────────────────────────────────────
+  // The credential store is async, so hydrate on mount.
+  useEffect(() => {
+    loadCredentials().then(setCreds);
+  }, []);
+
+  // ── Cross-tab sync ────────────────────────────────────────────────────────
   // When another tab writes to the credentials localStorage key, reload.
   // Debounced (100 ms) to avoid thrash on rapid batch writes.
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
