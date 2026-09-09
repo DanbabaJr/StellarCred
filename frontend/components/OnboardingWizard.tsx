@@ -223,10 +223,11 @@ function GetCredentialStep() {
 
   // Check if user already has a credential
   useEffect(() => {
-    const creds = loadCredentials();
-    if (creds.some((c) => c.type === "age")) {
-      setDone(true);
-    }
+    loadCredentials().then((creds) => {
+      if (creds.some((c) => c.type === "age")) {
+        setDone(true);
+      }
+    });
   }, []);
 
   async function onRequest() {
@@ -351,8 +352,7 @@ function GenerateProofStep() {
   const [hasCredential, setHasCredential] = useState(false);
 
   useEffect(() => {
-    const creds = loadCredentials();
-    setHasCredential(creds.some((c) => c.type === "age"));
+    loadCredentials().then((creds) => setHasCredential(creds.some((c) => c.type === "age")));
   }, []);
 
   return (
@@ -466,8 +466,15 @@ export function OnboardingWizard() {
   } = useOnboarding();
   const { address } = useWallet();
   const [mounted2, setMounted2] = useState(false);
+  const [hasAgeCredential, setHasAgeCredential] = useState(false);
 
   useEffect(() => setMounted2(true), []);
+
+  // Track whether the user already holds an age credential (loadCredentials
+  // is async, so this can't be computed synchronously during render).
+  useEffect(() => {
+    loadCredentials().then((creds) => setHasAgeCredential(creds.some((c) => c.type === "age")));
+  }, []);
 
   // Auto-dismiss after completing the unlock step
   useEffect(() => {
@@ -488,8 +495,7 @@ export function OnboardingWizard() {
     currentStep === "welcome" ||
     currentStep === "unlock" ||
     (currentStep === "connect-wallet" && !!address) ||
-    (currentStep === "get-credential" &&
-      loadCredentials().some((c) => c.type === "age")) ||
+    (currentStep === "get-credential" && hasAgeCredential) ||
     currentStep === "generate-proof";
 
   return (
